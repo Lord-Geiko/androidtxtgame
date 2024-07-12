@@ -130,7 +130,7 @@ class enemy:
 
 
 def display_player_info(player, current_room, inventory, player_health):
-    print(f"{player} are in the {current_room}\nInventory: {inventory}\nPlayer Health: {player_health}HP\n{'-' * 27}")
+    print(f"You are in the {current_room}\nInventory: {inventory}\nPlayer Health: {player_health}HP\n{'-' * 27}")
 
 
 def startroom(player):
@@ -287,7 +287,7 @@ def main():
     name = input("Enter your character's name: ")
     player = Player(name)
     print("***********************")
-    print(f"Aloha, {player}! Let your adventure into Imagination Realm BEGIN!!!!")
+    print(f"Aloha,{player}! Let your adventure into Imagination Realm BEGIN!!!!")
     startroom(player)
 if __name__ =="__main__":
     main()
