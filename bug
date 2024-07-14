@@ -1,0 +1,50 @@
+def fight_room(player):
+
+    player.current_room = "fight room"
+    is_game_over = False
+    npc_defeated = False
+
+    while not is_game_over and not npc_defeated:
+        
+        display_player_info(player, current_room, player.inventory, player.health, player.gold)
+        if player.current_room == "fight room":
+            print("You find yourself in a face to face with a Giant Crab. You see a door in front of you.")
+            action = input("What would you like to do? (enter 'yes' to proceed): ")
+            if action.lower() == "yes":
+                player.current_room = "beach"
+        
+        elif player.current_room == "beach":
+            print("You are now on a dense beach like area.")
+            npc = NPC("Giant Crab", 50, 10)
+            print("A savage " + npc.name + " appears!")
+            while npc.health > 0 and player.health > 0:
+                print("\nPlayer Health:", player.health)
+                print(npc.name + " Health:", npc.health)
+                action = input("What would you like to do? (enter '1' to attack, 'run' to run away): ")
+                
+                if action.lower() == "1":
+                    player.attack_npc(npc)
+                    if npc.health > 0:
+                        npc_attack = random.randint(1, 10)
+                        player.take_damage(npc_attack)
+                elif action.lower() == "run":
+                    print("You ran away from the " + npc.name + "and fell into a giant hole")
+                    print("*"*10)
+                    random_room(player)
+                    break
+                else:
+                    print("Invalid action. Try again.")
+                
+            if player.health <= 0:
+                print("You were defeated by the " + npc.name + ". Game Over.")
+                is_game_over = True
+                
+            elif not is_game_over:
+                print("You defeated the " + npc.name + ". You find a potion and some gold.")
+                player.potions += 1
+                player.gold += random.randint(1, 10)
+                player.addtoinventory("potion")  # corrected here
+                player.current_room = "menu room"
+                display_player_info(player, current_room, player.inventory, player.health, player.gold)
+                npc_defeated = True
+                next_room(player)
