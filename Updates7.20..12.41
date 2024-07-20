@@ -1,0 +1,703 @@
+#Copyright 2024##########
+#Dangerous Industries 808
+#########################
+#DO NOT GIVE AWAY CODES##
+#########################
+#All code is protected###
+######### BY LAW ########
+#########################
+
+
+
+import time
+import random
+from collections import defaultdict
+
+def delay_print(s):
+    for c in s:
+        print(c, end='', flush=True)
+        time.sleep(0.10)
+
+class Loot:
+    def __init__(self, name, loot_type, value):
+        self.name = name
+        self.loot_type = loot_type
+        self.value = value
+
+# Example loot items
+rusty_sword = Loot('Rusty Sword', 'weapon', 2)
+excalibur = Loot('Excalibur', 'weapon', 1_000_000)
+health_potion = Loot('Health Potion', 'potion', 10)
+Scimitar_sword = Loot('Scimitar Sword', 'weapon', 25)
+
+class Player:
+    def __init__(self, name):
+        self.name = name
+        self.maxhealth = 100
+        self.health = self.maxhealth
+        self.base_attack = 10
+        self.gold = 0
+        self.potions = 0
+        self.weapons = ["Rusty Sword"]
+        self.current_weapon = "Rusty Sword"
+        self.weapon_bonus = {"Rusty Sword": 15}
+        self.current_room = "Dungeon"
+        self.inventory = defaultdict(int)
+        self.pet = None
+        self.defending = False
+        self.special_attack_cooldown = 0
+
+    def adopt_pet(self, pet):
+        self.pet = pet
+        print(f"{player.name} adopted {pet.name} as your pet!")
+
+    def check_pet(self):
+        if self.pet:
+            print(f"\n{player.name} pet {self.pet.name} is with you.")
+            self.interact_with_pet()
+        else:
+            print("You don't have a pet.")
+
+    def interact_with_pet(self):
+        if not self.pet:
+            print("You don't have a pet yet.")
+            return
+
+        while True:
+            print(f"\nInteracting with {self.pet.name}:")
+            print("1. Feed")
+            print("2. Play")
+            print("3. Check status")
+            print("4. Return to game")
+            
+            choice = get_integer_input("Choose an action (1-4): ", 1, 4)
+            if choice == 1:
+                self.pet.feed()
+            elif choice == 2:
+                self.pet.play()
+            elif choice == 3:
+                self.pet.status()
+            elif choice == 4:
+                return
+
+    def add_gold(self, amount):
+        self.gold += amount
+        print(f"{player.name} gained {amount} gold.\nTotal Gold: {self.gold}")
+
+    def spend_gold(self, amount):
+        if self.gold >= amount:
+            self.gold -= amount
+            return True
+        return False
+
+    def take_damage(self, damage):
+        self.health -= damage
+        
+    def heal(self, amount):
+        self.health = min(self.maxhealth, self.health + amount)
+        
+    def attack_npc(self, npc):
+        bonus = self.weapon_bonus.get(self.current_weapon, 0)
+        total_attack = self.base_attack + bonus
+        npc.take_damage(total_attack)
+
+    def add_to_inventory(self, item):
+        self.inventory[item] += 1
+
+    def set_health(self, new_health):
+        self.health = min(self.maxhealth, new_health)
+
+    def special_attack(self, npc):
+        if self.special_attack_cooldown == 0:
+            damage = random.randint(self.base_attack * 2, self.base_attack * 3)
+            npc.take_damage(damage)
+            self.special_attack_cooldown = 3
+            return damage
+        return 0
+
+    def defend(self):
+        self.defending = True
+
+    def use_potion(self):
+        if self.potions > 0:
+            heal_amount = random.randint(20, 40)
+            self.heal(heal_amount)
+            self.potions -= 1
+            return heal_amount
+        return 0
+
+    def update_cooldowns(self):
+        if self.special_attack_cooldown > 0:
+            self.special_attack_cooldown -= 1
+
+class NPC:
+    def __init__(self, name, health, attack):
+        self.name = name
+        self.health = health
+        self.attack = attack
+        
+    def take_damage(self, damage):
+        self.health -= damage
+
+class Merchant:
+    def __init__(self):
+        self.inventory = {
+            "Health Potion": {"price": 20, "description": "Restores 50 HP"},
+            "Strength Potion": {"price": 30, "description": "Increases attack by 10 for the next battle"},
+            "Scimitar Sword": {"price": 25, "description": "Increases base attack by 5 permanently"}
+        }
+
+    def display_inventory(self):
+        print("DeadRock's Inventory:")
+        for i, (item, details) in enumerate(self.inventory.items(), 1):
+            print(f"{i}. {item}: {details['price']} gold - {details['description']}")
+
+    def sell_item(self, player, item_number):
+        if 1 <= item_number <= len(self.inventory):
+            item = list(self.inventory.keys())[item_number - 1]
+            price = self.inventory[item]["price"]
+            if player.spend_gold(price):
+                if item == "Health Potion":
+                    player.potions += 1
+                elif item == "Strength Potion":
+                    player.add_to_inventory("Strength Potion")
+                elif item == "Scimitar Sword":
+                    player.base_attack += 5
+                print(f"{player.name} bought {item} for {price} gold.")
+                return True
+            else:
+                print("Not enough gold!")
+        else:
+            print("Invalid item number.")
+        return False
+
+class Pet:
+    def __init__(self, name, species):
+        self.name = name
+        self.species = species
+        self.loyalty = 0
+        self.hunger = 50
+        self.happiness = 50
+
+    def feed(self):
+        self.hunger = max(0, self.hunger - 30)
+        self.happiness += 10
+        self.loyalty += 5
+        print(f"{self.name} happily eats the food. Hunger decreased, happiness increased!")
+
+    def play(self):
+        self.happiness += 20
+        self.hunger += 10
+        self.loyalty += 10
+        print(f"You play with {self.name}. Happiness increased!")
+
+    def status(self):
+        print(f"{self.name} Status:")
+        print(f"Hunger: {self.hunger}/100")
+        print(f"Happiness: {self.happiness}/100")
+        print(f"Loyalty: {self.loyalty}/100")
+
+def get_integer_input(prompt, min_value, max_value):
+    while True:
+        try:
+            value = int(input(prompt))
+            if min_value <= value <= max_value:
+                return value
+            print(f"Please enter a number between {min_value} and {max_value}.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
+def get_yes_no_input(prompt):
+    while True:
+        response = input(prompt).lower()
+        if response in ['yes', 'no']:
+            return response
+        print("Invalid input. Please enter 'yes' or 'no'.")
+
+def enhanced_combat(player, npc):
+    print(f"A {npc.name} appears!")
+    
+    while npc.health > 0 and player.health > 0:
+        print(f"\n{player.name} Health: {player.health}")
+        print(f"{npc.name} Health: {npc.health}")
+        
+        print("\nChoose your action:")
+        print("1. Attack")
+        print("2. Defend")
+        print("3. Use Potion")
+        print("4. Special Attack")
+        print("5. Analyze Enemy")
+        print("6. Run")
+        
+        choice = input("Enter your choice (1-6): ")
+        
+        if choice == "1":  # Attack
+            damage = random.randint(player.base_attack, player.base_attack + 10)
+            npc.health -= damage
+            print(f"You deal {damage} damage to the {npc.name}!")
+        elif choice == "2":  # Defend
+            player.defending = True
+            print("You take a defensive stance, reducing incoming damage!")
+        elif choice == "3":  # Use Potion
+            if player.potions > 0:
+                heal_amount = random.randint(20, 40)
+                player.heal(heal_amount)
+                player.potions -= 1
+                print(f"You use a potion and heal for {heal_amount} HP!")
+            else:
+                print("You don't have any potions!")
+                continue
+        elif choice == "4":  # Special Attack
+            if player.special_attack_cooldown == 0:
+                damage = random.randint(player.base_attack * 2, player.base_attack * 3)
+                npc.health -= damage
+                player.special_attack_cooldown = 3
+                print(f"You unleash a powerful attack, dealing {damage} damage!")
+            else:
+                print("Special attack is on cooldown!")
+                continue
+        elif choice == "5":  # Analyze Enemy
+            print(f"You analyze the {npc.name}:")
+            print(f"Health: {npc.health}")
+            print(f"Attack: {npc.attack}")
+            continue
+        elif choice == "6":  # Run
+            if random.random() < 0.5:
+                print("You successfully flee from the battle!")
+                return "fled"
+            else:
+                print("You failed to escape!")
+        else:
+            print("Invalid choice. Try again.")
+            continue
+        
+        # NPC's turn
+        if npc.health > 0:
+            npc_damage = random.randint(npc.attack - 5, npc.attack + 5)
+            if player.defending:
+                npc_damage //= 2
+                player.defending = False
+            player.health -= npc_damage
+            print(f"The {npc.name} attacks you for {npc_damage} damage!")
+        
+        # Reduce special attack cooldown
+        if player.special_attack_cooldown > 0:
+            player.special_attack_cooldown -= 1
+    
+    if player.health <= 0:
+        print(f"You were defeated by the {npc.name}. Game Over.")
+        return "defeat"
+    else:
+        print(f"You defeated the {npc.name}!")
+        return "victory"
+
+def display_player_info(player):
+    print(f"{player.name} is in the {player.current_room}\nInventory: {dict(player.inventory)}\nPlayer Health: {player.health}HP\nGOLD: {player.gold}\n{'-' * 27}")
+
+def main_game_loop(player):
+    display_player_info(player)
+    print("\nWhat would you like to do?")
+    print("1. Continue with the current room")
+    print("2. Check inventory")
+    print("3. Interact with pet")
+    print("4. Visit the merchant")
+    print("5. Rest and heal")
+    print("6. Quit game")
+    
+    choice = input("Enter your choice (1-6): ")
+    
+    if choice == "1":
+        return "continue"
+    elif choice == "2":
+        print("\nYour inventory:")
+        for item, quantity in player.inventory.items():
+            print(f"{item}: {quantity}")
+        input("Press Enter to continue...")
+    elif choice == "3":
+        player.check_pet()
+    elif choice == "4":
+        return "merchant_room"
+    elif choice == "5":
+        rest_and_heal(player)
+    elif choice == "6":
+        return "quit"
+    else:
+        print("Invalid choice. Please try again.")
+    
+    return "loop"
+
+def room_wrapper(room_function, player):
+    while True:
+        action = main_game_loop(player)
+        if action == "continue":
+            result = room_function(player)
+            if result:
+                return result
+        elif action == "quit":
+            return "quit"
+        elif action == "merchant_room":
+            merchant_room(player)
+        elif action == "loop":
+            continue
+
+def dungeon(player):
+    player.current_room = "Dungeon"
+    print("You woke up in a Dungeon, feeling dizzy; last thing you remember was can barely be registered as looking around you notice a Copper coin on the floor.....")
+    print("Do you want to pick it up?")
+    print("Yes/No")
+    
+    pickup = input().lower()
+    if pickup == "yes":
+        player.add_to_inventory("copper coin")
+        print(f"Inventory: {dict(player.inventory)}")
+        print("You pick up the copper coin and walk into a dark Hallway")
+        return "goblin_room"
+    elif pickup == "no":
+        print("So you leave the room and walk down the hallway")
+        return "goblin_room"
+    else:
+        print("Invalid Input.. Please try again")
+        return None
+
+def goblin_room(player):
+    player.current_room = "Dark Hallway"
+    print("As you cautiously tread down the dimly lit hallway, the flickering torchlight reveals a goblin emerging from the shadows. With a sly grin, the goblin rasps, “My name is Jeriko from the Dead Hand's Tavern. Hand over the mysterious coin, traveler, or face the consequences.”")
+    
+    if get_yes_no_input("Give it to him? (yes/no): ") == 'yes':
+        if player.inventory["copper coin"] > 0:
+            player.inventory["copper coin"] -= 1
+            player.inventory["health potion"] += 1
+            print(f"You gave Jeriko your copper coin.\nNow you have {dict(player.inventory)} in your bag")
+            print("Jeriko being so happy that you gave him copper coins, he gave you a health potion, then snapped his fingers & teleported away")
+            return "hallway_room"
+        else:
+            print("*"*5)
+            print("***You don't have a copper coin to give.***")
+            print("*"*5)
+    else:
+        delay_print("The Goblin named Jeriko lets you pass with a stern warning about the dangers ahead.")
+        print(f"{player.name} walks passed Jeriko.\n[wooooosh] {player.name} falls into a trap door in the floor")
+        return "kitchen_room"
+    return None
+
+def hallway_room(player):
+    player.current_room = "Darkness of a Hallway"
+    print("You start walking down a dark hallway,\nwith only the flickering light from a single torch casting eerie shadows on the moss covered cobblestone walls\nThe air is damp and carries a faint, musty rotten onion odor.")
+    print("As you take a cautious step forward\nthe floorboards creak under your weight\nechoing through the darkness silence\nThe hallway stretches ahead\ndisappearing into darkness\nYou can barely make out the outline shadow of something very Colossal running up towards you")
+    print("Will you choose to run or stay to fight")
+    print("*"*10)
+    
+    choice = get_yes_no_input("Fight or run? (yes/no): ")
+    if choice == 'no':  # Run
+        return "sewer_room"
+    else:  # Fight
+        return "fight_room"
+
+def kitchen_room(player):
+    player.current_room = "Kitchen looking area"
+    print("You walk into an area that looks like a dilapidated kitchen.")
+    print("Looking around, you see:")
+    print("1. BIG Roaches flying around a dim light bulb that's slowly swinging back and forth")
+    print("2. Tiny mice eating old mouldy bread on a rusty countertop")
+    print("3. A suspicious-looking cabinet in the corner")
+    print("4. A door leading out of the kitchen")
+    
+    while True:
+        choice = get_integer_input("What would you like to do? (1-4): ", 1, 4)
+        if choice == 1:
+            if get_yes_no_input("Do you want to try and grab the shiny object? (yes/no): ") == 'yes':
+                if random.random() < 0.5:
+                    print("You successfully snatch the shiny object! It's a small golden key.")
+                    player.add_to_inventory("golden key")
+                else:
+                    print("The roaches swarm you! You take 5 damage from their bites.")
+                    player.take_damage(5)
+            else:
+                print("You decide not to risk it and back away from the roaches.")
+        elif choice == 2:
+            if get_yes_no_input("Do you want to take the mouldy bread? (yes/no): ") == 'yes':
+                player.add_to_inventory("mouldy bread")
+                print("You picked up the Mouldy Bread and put it in your pocket. The mice squeak angrily at you.")
+            else:
+                print("You leave the bread for the mice. They seem grateful and scurry away, revealing a small potion behind them!")
+                player.potions += 1
+                print("You gained 1 Health Potion!")
+        elif choice == 3:
+            if get_yes_no_input("Do you want to open it? (yes/no): ") == 'yes':
+                if "golden key" in player.inventory:
+                    print("You use the golden key to unlock the cabinet. Inside, you find a mysterious amulet!")
+                    player.add_to_inventory("mysterious amulet")
+                else:
+                    print("The cabinet is locked. You need a key to open it.")
+            else:
+                print("You decide not to open the cabinet. Who knows what might be inside?")
+        elif choice == 4:
+            print("You decide to leave the kitchen.")
+            print("As you exit, you notice two paths:")
+            print("To the left is a long path of darkness.")
+            print("To the right, you see a dim light shining from a short distance.")
+            direction = get_yes_no_input("Do you choose to go Right? (yes/no): ")
+            return "sewer_room"
+        
+        if player.health <= 0:
+            return "game_over"
+        
+        if get_yes_no_input("Do you want to do something else in the kitchen? (yes/no): ") != 'yes':
+            print("You decide to leave the kitchen.")
+            print("As you exit, you notice two paths:")
+            print("To the left is a long path of darkness.")
+            print("To the right, you see a dim light shining from a short distance.")
+            direction = get_yes_no_input("Do you choose to go Right? (yes/no): ")
+            return "sewer_room"
+
+def sewer_room(player):
+    player.current_room = "sewer room"
+    print("You travel in a Stink Sewer like area that is putrid with horrific odors,\nYou can go left or right")
+    direction = get_yes_no_input("Do you want to go right? (yes/no): ")
+    return "na_moo_riddle"
+
+def fight_room(player):
+    player.current_room = "fight room"
+    print("You find yourself face-to-face with a Giant Crab.")
+    npc = NPC("Giant Crab", 50, 15)
+    
+    result = enhanced_combat(player, npc)
+    
+    if result == "victory":
+        gold_reward = random.randint(10, 50)
+        player.add_gold(gold_reward)
+        player.potions += 1
+        print(f"You defeated the {npc.name} and found {gold_reward} gold and +1 Potion!")
+        return "kitchen_room"
+    elif result == "defeat":
+        return "game_over"
+    else:  # fled
+        return "sewer_room"
+
+def mystery_forest(player):
+    player.current_room = "Mystery Forest"
+    print("As you step into an unknown Mythical Gigantic forest, the air thickens with an ancient magic, and the trees whisper secrets of forgotten times. Glowing fungi illuminate the path, casting eerie shadows that dance with the passing of on and off sunlight. Suddenly, a soft, melodic hum fills the air, hinting at the presence of an unseen Dwarf Troll watching over the enchanted realm.")
+    print("Who are you!? Where did you come from!? HOW DID YOU EVEN FIND THIS PLACE!? Sorry for the many rude questions")
+    print(f"{player.name} stares at A mini dwarf troll, no bigger than 2 feet, wielding a small wooden stick crafted from the ancient Tree of Life's root. He sports a long, flowing beard covered with pillbugs and earthworms, a whimsical mushroom hat that looks dried up and older than Thornbark himself, and carries a mysterious hide backpack adorned with mythical forest trinkets. His presence gives an aura of ancient magic and woodland mythical forest mystery.")
+    print("My name is THRONBARK of the Lahbahn Race that resides in this Ancient Forest of Eldergrove")
+    
+    choice = get_integer_input("Do you want to:\n1. Offer something to Thornbark\n2. Venture deeper into the forest\n3. Leave the forest\nEnter your choice (1-3): ", 1, 3)
+    
+    if choice == 1:
+        if get_yes_no_input("Do you have anything to offer Thornbark? (yes/no): ") == 'yes':
+            if player.inventory["mouldy bread"] > 0:
+                player.inventory["mouldy bread"] -= 1
+                print(f"You dig into your bag and find {dict(player.inventory)}. You hand over to Thornbark your Mouldy Bread.\nNow you have {dict(player.inventory)} in your bag")
+                print("Thornbark stares at you with amazement, being very pleased and happy hands you a very odd and ancient flute, intricately carved from the wood of the Tree of Life. The flute is adorned with delicate, glowing runes that pulse with a soft, ethereal light. Its surface is smooth, yet it carries the weight of countless ages, aura of the very soul of the forest lightly pulsates off of it.")
+                print("This very flute will bring you many many mysterious ventures to come if you learn to master its melody! Please do not ever give this away for it holds the power of untold Universal Power")
+                player.add_to_inventory("Elder's Whispers Flute")
+                return "pet_encounter_room"
+            else:
+                print("*"*5)
+                print("***You don't have a mouldy bread to give.***")
+                print("*"*5)
+        else:
+            delay_print("Thornbark sighs.. He pulls out of his mysterious hide back pack a very odd and ancient flute, intricately carved from the wood of the Tree of Life. The flute is adorned with delicate, glowing runes that pulse with a soft, ethereal light. Its surface is smooth, yet it carries the weight of countless ages, aura of the very soul of the forest lightly pulsates off of it.")
+            print(f"Thornbark then plays a very soothing melody from it as {player.name} slowly feels weird and nauseous\n{player.name} blacks out")
+            return "pet_encounter_room"
+    elif choice == 2:
+        print("You decide to explore deeper into the mysterious forest...")
+        return "deep_mystery_forest"
+    else:
+        print("You decide to leave the forest.")
+        return "dungeon"
+
+def deep_mystery_forest(player):
+    player.current_room = "Deep Mystery Forest"
+    print("You venture deeper into the Mystery Forest. The trees grow taller and closer together, their ancient branches intertwining overhead.")
+    print("Suddenly, you come across a clearing bathed in ethereal light. In the center stands a figure that seems to be part tree, part humanoid.")
+    print("'Greetings, traveler. I am Thornroot, guardian of the deepest parts of ElderGrove,' the figure speaks, its voice like rustling leaves.")
+    
+    print("\nThornroot regards you with ancient, wise eyes.")
+    print("'To prove your worth and learn the secrets of this forest, you must face a trial. Are you prepared to face the Centerpede?'")
+    
+    if get_yes_no_input("Do you accept the challenge? (yes/no): ") != 'yes':
+        print("Thornroot nods solemnly. 'Return when you are ready to face your trial.'")
+        return "mystery_forest"
+    
+    print("\nThornroot waves his branch-like arm, and the ground begins to tremble.")
+    print("From the earth emerges a massive centipede, its countless legs clicking against stone and root.")
+    
+    centerpede = NPC("Centerpede", 35, 20)
+    battle_result = enhanced_combat(player, centerpede)
+    
+    if battle_result == "victory":
+        print("\nAs the Centerpede falls, its body dissolves into motes of light that float away on the forest breeze.")
+        print("Thornroot approaches you, approval glinting in his eyes.")
+        print("'Well fought, brave one. You have proven yourself worthy of the forest's greatest secret.'")
+        
+        if "Elder's Whispers Flute" in player.inventory:
+            print("\nThornroot gestures to the Elder's Whispers Flute in your possession.")
+            print("'Ah, I see you possess the Ancient Flute of our people. Let me teach you how to use it properly.'")
+            print("Thornroot spends some time instructing you on the intricate melodies and rhythms needed to unlock the flute's true power.")
+            print("\n'The flute you hold is more than just an instrument. It is a key to the past, a relic of the long-departed Terrans.'")
+            print("'When played correctly, it can summon an ancient mothership, hidden here in ElderGrove for since the Ancestors of Terran first came to Terra, otherwise known as Planet Earth.'")
+            print("'Would you like to summon the mothership now?'")
+            
+            if get_yes_no_input("Summon the mothership? (yes/no): ") == 'yes':
+                print("\nYou bring the flute to your lips and play the melody Thornroot taught you.")
+                print("The forest around you seems to hold its breath. Then, with a great rush of wind, the canopy above parts...")
+                print("A massive, shimmering vessel descends from the sky, hovering silently above the clearing.")
+                print("A beam of light engulfs you, and you feel yourself being drawn upward...")
+                return "mothership"
+            else:
+                print("\nYou decide not to summon the mothership yet. Thornroot nods in understanding.")
+                print("'The choice is yours to make when you are ready. The Starbound Voyager will be waiting for you to play its flute to summon thee.'")
+        else:
+            print("\nThornroot looks at you curiously. 'It seems you are missing a crucial item for the next part of your journey.'")
+            print("'Seek out my brother Thornbark. Only then can you unlock the full potential of this forest's secrets.'")        
+        return "mythical_grove"
+    
+    elif battle_result == "defeat":
+        print("\nAs your consciousness fades, you hear Thornroot's voice:")
+        print("'Rest now, brave one. The forest will heal you, and you may try again when you are ready.'")
+        player.health = player.maxhealth // 2  # Restore half health
+        return "mystery_forest"
+    else:  # fled
+        print("\nYou retreat from the battle. Thornroot watches you leave without judgment.")
+        print("'ElderGrove whispers return when you are prepared to face the trial.'")
+        return "mystery_forest"
+
+def mythical_grove(player):
+    player.current_room = "mythical rain forest"
+    print("As you kept running and running far away from the Centerpede creature you notice your deeper in Eldergrove and seems like the atmosphere changed.\nYou see a crystal-clear river stream sparkling with enchanment. The air filled with sounds of rustling leaves, chirping birds.")
+    print(f"All of a sudden {player.name} hears a whisper of ancient magic coming from the dark tree lines that surround the river.")
+    print("My name is Arboris! I am the Guardian Tree Ent of this river stream! Here to protect all creatures that live in the river")
+    print("Stranger your kind i have not seen around the forest for over 2,000 years! Your original Ancestors was the ones who gave me the breath of life")
+    print("Here let me show you something\nArboris reaches out his root like arms towards you and covers your head and face....")
+    return "pet_encounter_room"
+
+def na_moo_riddle(player):
+    player.current_room = "Na Moo's Riddle Room"
+    print("You enter a dimly lit chamber. In the center stands a peculiar creature - half tree, half cow.")
+    print("'I am Na Moo,' it speaks, its voice a mix of rustling leaves and gentle moos.")
+    print("'To pass, you must answer my riddle. But beware, for each wrong answer, you'll lose some health.'")
+    
+    riddle = "I am not alive, but I grow; I don't have lungs, but I need air; I don't have a mouth, but water kills me. What am I?"
+    answer = "fire"
+    
+    attempts = 3
+    while attempts > 0:
+        print(f"\n{riddle}")
+        guess = input("Your answer: ").lower().strip()
+        
+        if guess == answer:
+            print("'Correct!' Na Moo exclaims. 'You may pass.'")
+            return "mystery_forest"
+        else:
+            attempts -= 1
+            player.health -= 10
+            print(f"'Wrong!' Na Moo bellows. 'You lose 10 health. {attempts} attempts remaining.'")
+            
+            if player.health <= 0:
+                return "game_over"
+    
+    print("'You have failed to answer my riddle,' Na Moo says solemnly.")
+    return "sewer_room"
+
+def pet_encounter_room(player):
+    player.current_room = "Pet Encounter Room"
+    print("As you regain consciousness, you find yourself in a serene glade.")
+    print("A small, magical creature approaches you. It seems to be a mix of a fox and a butterfly, with shimmering wings and a fluffy tail.")
+    
+    if get_yes_no_input("Would you like to adopt this creature as your pet? (yes/no): ") == 'yes':
+        pet_name = input("What would you like to name your new pet? ")
+        new_pet = Pet(pet_name, "Foxterfly")
+        player.adopt_pet(new_pet)
+        print(f"You've adopted {pet_name} the Foxterfly!")
+    else:
+        print("You decide not to adopt the creature. It flutters away, disappearing into the forest.")
+    
+    return "mystery_forest"
+
+def mothership(player):
+    player.current_room = "Terran Mothership"
+    print("You find yourself aboard the ancient Terran mothership.")
+    print("The air hums with dormant technology, waiting to be reawakened.")
+    print("As you explore, you come across a holographic interface.")
+    
+    print("\nThe interface presents you with three options:")
+    print("1. Activate the ship's defense systems")
+    print("2. Access the Terran knowledge database")
+    print("3. Initiate the ship's return sequence to the Terran homeworld")
+    
+    choice = get_integer_input("What would you like to do? (1-3): ", 1, 3)
+    
+    if choice == 1:
+        print("The ship's defense systems power up, creating a protective barrier around ElderGrove.")
+        print("You've ensured the safety of the forest and its inhabitants.")
+    elif choice == 2:
+        print("The knowledge database activates, flooding your mind with ancient Terran wisdom.")
+        print("You gain insights into advanced technology and the history of the universe.")
+        player.base_attack += 20
+        print("Your base attack has increased by 20!")
+    else:
+        print("The ship's engines roar to life, preparing for the journey to the Terran homeworld.")
+        print("Do you wish to leave ElderGrove and embark on this new adventure?")
+        
+        if get_yes_no_input("Leave for the Terran homeworld? (yes/no): ") == 'yes':
+            print("The mothership rises, breaking through ElderGrove's canopy.")
+            print("As you leave the planet's atmosphere, you wonder what new adventures await in the stars...")
+            return "game_end"
+    
+    print("\nWith your task complete, you return to ElderGrove, forever changed by your experience.")
+    return "mystery_forest"
+
+def game_over(player):
+    print("Game Over!")
+    print(f"You've been defeated. {player.name}'s journey ends here.")
+    return "quit"
+
+def game_end(player):
+    print("Congratulations! You've completed the game!")
+    print(f"Final stats for {player.name}:")
+    display_player_info(player)
+    return "quit"
+
+def main():
+    print("Welcome to the Adventure Game!")
+    player_name = input("Enter your character's name: ")
+    player = Player(player_name)
+    print(f"Welcome, {player.name}! Your adventure begins...")
+    
+    current_room = "dungeon"
+    while current_room != "quit":
+        if current_room == "dungeon":
+            current_room = room_wrapper(dungeon, player)
+        elif current_room == "goblin_room":
+            current_room = room_wrapper(goblin_room, player)
+        elif current_room == "hallway_room":
+            current_room = room_wrapper(hallway_room, player)
+        elif current_room == "kitchen_room":
+            current_room = room_wrapper(kitchen_room, player)
+        elif current_room == "sewer_room":
+            current_room = room_wrapper(sewer_room, player)
+        elif current_room == "fight_room":
+            current_room = room_wrapper(fight_room, player)
+        elif current_room == "mystery_forest":
+            current_room = room_wrapper(mystery_forest, player)
+        elif current_room == "deep_mystery_forest":
+            current_room = room_wrapper(deep_mystery_forest, player)
+        elif current_room == "na_moo_riddle":
+            current_room = room_wrapper(na_moo_riddle, player)
+        elif current_room == "pet_encounter_room":
+            current_room = room_wrapper(pet_encounter_room, player)
+        elif current_room == "mothership":
+            current_room = room_wrapper(mothership, player)
+        elif current_room == "game_over":
+            current_room = room_wrapper(game_over, player)
+        elif current_room == "game_end":
+            current_room = room_wrapper(game_end, player)
+        else:
+            print("Error: Invalid room")
+            break
+
+    print("Thanks for playing!")
+
+if __name__ == "__main__":
+    main()
